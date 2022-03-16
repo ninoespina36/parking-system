@@ -1,0 +1,57 @@
+{
+    "slots": [
+        {
+            "entrace": "A",
+            "slotNum": 1,
+            "size": 2
+        },
+        {
+            "entrace": "A",
+            "slotNum": 2,
+            "size": 1
+        },
+        {
+            "entrace": "A",
+            "slotNum": 3,
+            "size": 0
+        },
+        {
+            "entrace": "A",
+            "slotNum": 4,
+            "size": 0
+        },
+
+
+        {
+            "entrace": "B",
+            "slotNum": 1,
+            "size": 2
+        },
+        {
+            "entrace": "B",
+            "slotNum": 2,
+            "size": 1
+        },
+        {
+            "entrace": "B",
+            "slotNum": 3,
+            "size": 0
+        },
+
+        {
+            "entrace": "C",
+            "slotNum": 1,
+            "size": 2
+        },
+        {
+            "entrace": "C",
+            "slotNum": 2,
+            "size": 1
+        },
+        {
+            "entrace": "C",
+            "slotNum": 3,
+            "size": 0
+        }
+    ]
+}
