@@ -26,7 +26,7 @@ const slotSlice = createSlice({
     },
     pushToLogs: (state, { payload }) =>{
       const { slot, exceedCharge } = payload;
-      state.logs.push({
+      state.logs.unshift({
         ...slot,
         timeLeft: DATE_TODAY,
         details: {

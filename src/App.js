@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import _ from 'underscore';
 import { useDispatch, useSelector } from 'react-redux';
+import moment from 'moment';
 
 import RenderSlot from './components/RenderSlot';
 import Layout from './components/Layout';
@@ -22,7 +23,7 @@ function App() {
 
   const [ entrances, setEntrances ] = useState([]);
   const [ customerState, setCustomerState ] = useState(customerInitialState);
-  const { slots } = useSelector(state => state.slot);
+  const { slots, logs } = useSelector(state => state.slot);
   const dispatch = useDispatch();
 
   useEffect(()=>{
@@ -33,6 +34,15 @@ function App() {
     // //Append keys into array
     setEntrances(Object.keys(groupObject));
   }, []);
+
+  const checkLogs = () =>{
+    const findLogs = logs.filter(log => { 
+      const exceedMinutes = moment(log.timeParked).diff(moment(DATE_TODAY), 'minutes');
+      if(Math.abs(exceedMinutes) <= 60) return log.details.plateNo === customerState.plateNo;
+      else return null;
+     });
+    return findLogs[0];
+  }
 
   const handlePark = e =>{
     e.preventDefault();
@@ -57,19 +67,19 @@ function App() {
     //If no more slots on particular size
     if(_.isEmpty(availableSlots)){
 
-      const checkSmallSlots = () =>{
-        let smallSlots = [...prioritySlots,...otherSlots].filter(slot =>{
+      const checkMediumSlots = () =>{
+        let mediumSlots = [...prioritySlots,...otherSlots].filter(slot =>{
           return slot.size === 1 && !slot.occupied;
         });
-        if(!_.isEmpty(smallSlots)){
+        if(!_.isEmpty(mediumSlots)){
           //If small spots are full, get the medium spots
           if(window.confirm('Small slots are full, do you want to park in medium slots?')){
-            availableSlots = smallSlots;
+            availableSlots = mediumSlots;
           }else cancelPark = true;
-        }else checkMediumSlots();
+        }else checkLargeSlots();
       }
 
-      const checkMediumSlots = () =>{
+      const checkLargeSlots = () =>{
         //If medium spots are full, get the large spots
         if(window.confirm('Medium slots are full, do you want to park in large slots?')){
           availableSlots =  [...prioritySlots,...otherSlots].filter(slot =>{
@@ -80,10 +90,10 @@ function App() {
 
       switch(parseInt(customerState.size)){
         case 0:
-          checkSmallSlots();
+          checkMediumSlots();
           break;
         case 1:
-          checkMediumSlots();
+          checkLargeSlots();
           break;
 
         default: alert('Large slots are full');
@@ -92,27 +102,45 @@ function App() {
 
     if(_.isEmpty(availableSlots)){
 
-      if(cancelPark) alert('Babye');
+      if(cancelPark) alert('Ba bye');
       else alert('Parking slot is full');
 
     }else{
-      //TODO: asign slots
+
       const searchIndex = _.findIndex(slots, availableSlots[0]);
-      const appendSlotToArray = slots.map((slot, slotIndex) => {
-        if(slotIndex === searchIndex){
-          return {
-            ...availableSlots[0],
-            details: customerState,
-            occupied: true,
-            timeParked: DATE_TODAY,
-            timeLeft: null
-          }
-        }else return slot;
-      })
+      const logFound = checkLogs();
+      let appendSlotToArray = [];
+
+      if(logFound){
+         appendSlotToArray = slots.map((slot, slotIndex) => {
+          if(slotIndex === searchIndex){
+            return {
+              ...logFound,
+              details: logFound.details,
+              occupied: true,
+              timeParked: logFound.timeParked,
+              timeLeft: logFound.timeLeft,
+            }
+          }else return slot;
+        })
+      }else{
+         appendSlotToArray = slots.map((slot, slotIndex) => {
+          if(slotIndex === searchIndex){
+            return {
+              ...availableSlots[0],
+              details: customerState,
+              occupied: true,
+              timeParked: DATE_TODAY,
+              timeLeft: null
+            }
+          }else return slot;
+        })
+      }
+
       dispatch(setSlots(appendSlotToArray));
       setCustomerState(customerInitialState);
+      
     }
-    
   } 
 
   const handleChange = e =>{
@@ -188,6 +216,7 @@ function App() {
                     value={customerState.plateNo}
                     placeholder="Plate No."
                     onChange={handleChange}
+                    required
                   />
                   
                   <select 

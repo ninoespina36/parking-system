@@ -12,11 +12,12 @@ export default function RenderSlot({ slot, unpark }){
         const exceedMinutes = moment(slot.timeParked).add(3, 'hours').diff(moment(DATE_TODAY), 'minutes');
         const exceedDays = moment(slot.timeParked).add(3, 'hours').diff(moment(DATE_TODAY), 'days');
         let charge = 0;
+        //If exceeded, compute the charge
         if(exceedMinutes < 0){
             const multiplyChargeByDay = Math.abs(exceedDays);
-            const multipleChargeByHours = Math.abs(Math.round(Math.floor((exceedMinutes / 60) * 100) / 100)) % 24;
+            const multiplyChargeByHours = Math.abs(Math.round(Math.floor((exceedMinutes / 60) * 100) / 100)) % 24;
             const chargePerHour = SIZES.find(size => size.number === parseInt(slot.size));
-            charge = (multiplyChargeByDay * DAILY_CHARGE) + (chargePerHour.charge * multipleChargeByHours );
+            charge = (multiplyChargeByDay * DAILY_CHARGE) + (chargePerHour.charge * multiplyChargeByHours );
         }
         unpark(slot, charge);
     }
@@ -31,13 +32,14 @@ export default function RenderSlot({ slot, unpark }){
             let duration = moment.duration(diffTime, 'seconds');
             const interval = 1000;
 
+            //Start timer when occupied
             timer = setInterval(() => {
                 duration = moment.duration(duration - interval, 'milliseconds');
                 setTimer(`${duration.days()}:${duration.hours()}:${duration.minutes()}:${duration.seconds()}`);
             }, interval);
         }
         return ()=> clearInterval(timer);
-    }, [ slot.details, slot.timeParked ]);
+    }, [ slot.occupied, slot.timeParked ]);
 
 
     return (

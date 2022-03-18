@@ -6,8 +6,6 @@ export default function ParkingLogs(){
 
     const { logs } = useSelector(state => state.slot);
 
-    console.log(logs)
-
     return (
         <div className="border rounded-md bg-white">
             <div className="p-4 border-b">
@@ -35,8 +33,8 @@ export default function ParkingLogs(){
                                 <td className="p-2 text-left">{<RenderSize sizeNumber={log.size}/>}</td>
                                 <td className="p-2 text-left text-sm">
                                     {log.details.name && <p>Name: {log.details.name}</p>}
-                                    {log.details.name && <p>Plate No: {log.details.plateNo}</p>}
-                                    {log.details.name && <p>Color: {log.details.color}</p>}
+                                    {log.details.plateNo && <p>Plate No: {log.details.plateNo}</p>}
+                                    {log.details.color && <p>Color: {log.details.color}</p>}
                                 </td>
                                 <td className="p-2 text-left">{moment(log.timeLeft).format('LLL')}</td>
                                 <td className="p-2 text-left">{log.details.exceedCharge}</td>
