@@ -1,95 +1,232 @@
 import { useEffect, useState } from 'react';
 import _ from 'underscore';
+import { useDispatch, useSelector } from 'react-redux';
 
-import RenderSize from './components/RenderSize';
-import file from './slots.json';
+import RenderSlot from './components/RenderSlot';
+import Layout from './components/Layout';
+import { setSlots, unPark, pushToLogs } from './store/reducers/slotReducer';
+import { DATE_TODAY } from './utils';
+import ParkingLogs from './components/ParkingLogs';
 
 function App() {
 
-  const [ entranceSlots, setEntraceSlots ] = useState([]);
+  const customerInitialState = {
+    entrance: '',
+    name: '',
+    plateNo: '',
+    size: '',
+    color: '',
+    charge: 40,
+    exceedCharge: 0
+  }
+
+  const [ entrances, setEntrances ] = useState([]);
+  const [ customerState, setCustomerState ] = useState(customerInitialState);
+  const { slots } = useSelector(state => state.slot);
+  const dispatch = useDispatch();
 
   useEffect(()=>{
 
-    //Push boolean occupied to slot array
-    let seedSlots = file.slots.map(slot=>{
-      return {
-        ...slot,
-        occupied: false
-      }
-    });
-
     //Group slots according to entrance (make an object)
-    let groupObject = _.groupBy(seedSlots, slot=> {
-      return slot.entrace;
-    });
+    let groupObject = _.groupBy(slots, 'entrance');
 
-    //Append objects into array
-    setEntraceSlots(Object.keys(groupObject).map(object=>{
-      return groupObject[object];
-    }));
+    // //Append keys into array
+    setEntrances(Object.keys(groupObject));
   }, []);
 
+  const handlePark = e =>{
+    e.preventDefault();
 
-  const park = slotDetails =>{
-    // entranceSlots.forEach((entranceSlot, entranceIndex) => {
-    //   const findSlot = _.find(entranceSlot, slotDetails);
-    //   if(findSlot){
-    //     console.log(entranceIndex)
-    //     setEntraceSlots([
-    //       ...entranceSlots,
-    //       [entranceIndex] : [
-            
-    //       ]
-    //     ])
-    //   }
-    // });
+    let cancelPark = false;
+    let prioritySlots = [];
+    let otherSlots = [];
+
+    //Prioritize slots with regards to entrance
+    slots.forEach(slot => {
+      if(slot.entrance === customerState.entrance) 
+        prioritySlots.push(slot);
+      else 
+        otherSlots.push(slot);
+    });
+
+    //Set priority slots with regards to vehicle size
+    let availableSlots = [...prioritySlots,...otherSlots].filter(slot =>{
+      return slot.size === parseInt(customerState.size) && !slot.occupied;
+    });
+
+    //If no more slots on particular size
+    if(_.isEmpty(availableSlots)){
+
+      const checkSmallSlots = () =>{
+        let smallSlots = [...prioritySlots,...otherSlots].filter(slot =>{
+          return slot.size === 1 && !slot.occupied;
+        });
+        if(!_.isEmpty(smallSlots)){
+          //If small spots are full, get the medium spots
+          if(window.confirm('Small slots are full, do you want to park in medium slots?')){
+            availableSlots = smallSlots;
+          }else cancelPark = true;
+        }else checkMediumSlots();
+      }
+
+      const checkMediumSlots = () =>{
+        //If medium spots are full, get the large spots
+        if(window.confirm('Medium slots are full, do you want to park in large slots?')){
+          availableSlots =  [...prioritySlots,...otherSlots].filter(slot =>{
+            return slot.size === 2 && !slot.occupied;
+          });;
+        }else cancelPark = true;
+      }
+
+      switch(parseInt(customerState.size)){
+        case 0:
+          checkSmallSlots();
+          break;
+        case 1:
+          checkMediumSlots();
+          break;
+
+        default: alert('Large slots are full');
+      }
+    }
+
+    if(_.isEmpty(availableSlots)){
+
+      if(cancelPark) alert('Babye');
+      else alert('Parking slot is full');
+
+    }else{
+      //TODO: asign slots
+      const searchIndex = _.findIndex(slots, availableSlots[0]);
+      const appendSlotToArray = slots.map((slot, slotIndex) => {
+        if(slotIndex === searchIndex){
+          return {
+            ...availableSlots[0],
+            details: customerState,
+            occupied: true,
+            timeParked: DATE_TODAY,
+            timeLeft: null
+          }
+        }else return slot;
+      })
+      dispatch(setSlots(appendSlotToArray));
+      setCustomerState(customerInitialState);
+    }
+    
+  } 
+
+  const handleChange = e =>{
+    const { value, name } = e.target;
+    setCustomerState({
+      ...customerState,
+      [name]: value
+    })
   }
 
-  const unpark = (entrance, number) =>{
-    console.log(`${entrance}${number}`)
+  const unpark = (slot, exceedCharge) =>{
+    dispatch(pushToLogs({ slot, exceedCharge }))
+    const slotIndex = _.findIndex(slots, slot);
+    dispatch(unPark({ slot, slotIndex }))
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="grid grid-cols-12 gap-4">
-        {entranceSlots.map((entranceSlot, entraceIndex) => (
-
-          <div key={entraceIndex} className="col-span-4">
-
-            <h1 className="text-2xl mb-5">Entrace {entranceSlot[0].entrace}</h1>
-
-            {entranceSlot.map((slot, slotIndex)=>(
-              <div 
-                key={slotIndex} 
-                className="p-3 border mb-4 rounded-md shadow-lg hover:bg-slate-100 flex items-center justify-between"
-              >
-                <div>
-                  <h5>Slot No: {slot.slotNum}</h5>
-                  <div className="text-xs text-gray-500">
-                    {slot.occupied ? (
-                      <p className="my-1 text-green-500">Occupied</p>
-                    ) : ( <p className="my-1">Not Occupied</p> )}
-                    <p>Size: <RenderSize sizeNumber={slot.size} /></p>
-                  </div>
-                </div>
-                {slot.occupied ? 
-                  <button 
-                    className="py-2 px-3 text-sm bg-red-200 rounded-md" 
-                    onClick={()=>unpark(slot)}
-                  >Unpark</button> : (
-                    <button 
-                      className="py-2 px-3 text-sm bg-green-200 rounded-md" 
-                      onClick={()=>park(slot)}
-                    >Park</button>
-                  )
-                }
+    <Layout>
+      <div className="container mx-auto p-5">
+        <div className="grid grid-cols-12 gap-4">
+          {entrances.map((entrance, entranceIndex) => (
+              <div key={entranceIndex} className="col-span-4">
+                <h1 className="text-2xl mb-5">Entrance {entrance}</h1>
+                {slots
+                  .filter(slot => slot.entrance === entrance)
+                  .map((slot, slotIndex)=>(
+                    <RenderSlot 
+                      key={slotIndex}
+                      unpark={unpark} 
+                      slot={{...slot}} 
+                    />
+                  ))}
               </div>
-            ))}
+          ))} 
+        </div>
+
+
+        <div className="grid grid-cols-12 pt-10 gap-4">
+          <div className="col-span-4">
+
+            <div className="border rounded-md bg-white">
+              <div className="p-4 border-b">
+                <h1 className="text-2xl font-medium">New Park</h1>
+              </div>
+              <div className="p-4">
+                <form onSubmit={handlePark}>
+                  <select 
+                    className="border p-2 rounded-md block w-full mb-2"
+                    onChange={handleChange}
+                    name="entrance"
+                    value={customerState.entrance}
+                    required
+                  >
+                    <option value="" disabled>Entrance</option>
+                    {entrances.map((entrance, index) => (
+                      <option 
+                        key={index}
+                        value={entrance}>{entrance}</option>
+                    ))}
+                  </select>
+                  <input 
+                    type="text" 
+                    name="name"
+                    className="border p-2 rounded-md block w-full mb-2"
+                    value={customerState.name}
+                    placeholder="Enter Name"
+                    onChange={handleChange}
+                  /> 
+                  <input 
+                    type="text" 
+                    name="plateNo"
+                    className="border p-2 rounded-md block w-full mb-2"
+                    value={customerState.plateNo}
+                    placeholder="Plate No."
+                    onChange={handleChange}
+                  />
+                  
+                  <select 
+                    className="border p-2 rounded-md block w-full mb-2"
+                    onChange={handleChange}
+                    name="size"
+                    value={customerState.size}
+                    required
+                  >
+                    <option value="" disabled>Size</option>
+                    <option value={0}>Small</option>
+                    <option value={1}>Medium</option>
+                    <option value={2}>Large</option>
+                  </select>
+
+                  <input 
+                    type="text" 
+                    name="color"
+                    className="border p-2 rounded-md block w-full mb-2"
+                    value={customerState.color}
+                    placeholder="Color"
+                    onChange={handleChange}
+                  />
+
+                  <button 
+                    type="submit"
+                    className="bg-green-300 p-2 rounded-md block w-full hover:bg-green-400"
+                  >Submit Details</button>
+                </form>
+              </div>
+            </div>
+
           </div>
-          
-        ))}
+          <div className="col-span-8">
+            <ParkingLogs />
+          </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 

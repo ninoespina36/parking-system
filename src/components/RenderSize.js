@@ -1,13 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import _ from 'underscore';
+import { SIZES } from "../utils";
 
 export default function RenderSize({ sizeNumber }){
-
-    const SIZES = [
-        { size: 'L', number: 2 },
-        { size: 'M', number: 1 },
-        { size: 'S', number: 0 },
-    ];
 
     const [ size, setSize ] = useState({});
 
@@ -15,7 +10,7 @@ export default function RenderSize({ sizeNumber }){
         setSize(_.find(SIZES, item=> {
             return item.number === sizeNumber;
         }));
-    }, []);
+    }, [ sizeNumber ]);
 
     return <span>{size?.size}</span>;
 }

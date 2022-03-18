@@ -1,57 +1,70 @@
 {
     "slots": [
         {
-            "entrace": "A",
+            "entrance": "A",
             "slotNum": 1,
-            "size": 2
+            "size": 2,
+            "occupied": false,
+            "details": {}
         },
         {
-            "entrace": "A",
+            "entrance": "A",
             "slotNum": 2,
-            "size": 1
+            "size": 1,
+            "occupied": false,
+            "details": {}
         },
         {
-            "entrace": "A",
+            "entrance": "A",
             "slotNum": 3,
-            "size": 0
-        },
-        {
-            "entrace": "A",
-            "slotNum": 4,
-            "size": 0
+            "size": 0,
+            "occupied": false,
+            "details": {}
         },
 
 
         {
-            "entrace": "B",
+            "entrance": "B",
             "slotNum": 1,
-            "size": 2
+            "size": 2,
+            "occupied": false,
+            "details": {}
         },
         {
-            "entrace": "B",
+            "entrance": "B",
             "slotNum": 2,
-            "size": 1
+            "size": 1,
+            "occupied": false,
+            "details": {}
         },
         {
-            "entrace": "B",
+            "entrance": "B",
             "slotNum": 3,
-            "size": 0
+            "size": 0,
+            "occupied": false,
+            "details": {}
         },
 
         {
-            "entrace": "C",
+            "entrance": "C",
             "slotNum": 1,
-            "size": 2
+            "size": 2,
+            "occupied": false,
+            "details": {}
         },
         {
-            "entrace": "C",
+            "entrance": "C",
             "slotNum": 2,
-            "size": 1
+            "size": 1,
+            "occupied": false,
+            "details": {}
         },
         {
-            "entrace": "C",
+            "entrance": "C",
             "slotNum": 3,
-            "size": 0
+            "size": 0,
+            "occupied": false,
+            "details": {}
         }
     ]
 }
